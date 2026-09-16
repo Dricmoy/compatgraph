@@ -1,13 +1,23 @@
 import { ArrowUpRight, GitBranch, Radio } from "lucide-react";
 
-const consumers = [
-  { name: "checkout-web", owner: "Checkout", x: 75, y: 18, exposed: true },
-  { name: "billing-worker", owner: "Revenue", x: 79, y: 49, exposed: true },
-  { name: "partner-sdk", owner: "Ecosystem", x: 70, y: 80, exposed: true },
-  { name: "ledger-sync", owner: "Finance", x: 29, y: 81, exposed: false },
+import type { DashboardConsumer } from "@/data/dashboard";
+
+const positions = [
+  { x: 75, y: 18 },
+  { x: 79, y: 49 },
+  { x: 70, y: 80 },
+  { x: 29, y: 81 },
 ];
 
-export function ImpactMap() {
+export function ImpactMap({
+  consumers,
+  service,
+  candidate,
+}: {
+  consumers: DashboardConsumer[];
+  service: string;
+  candidate: string;
+}) {
   return (
     <section className="overflow-hidden rounded-2xl border border-black/[0.07] bg-white lg:col-span-2">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.07] px-5 py-4">
@@ -15,7 +25,7 @@ export function ImpactMap() {
           <div className="flex items-center gap-2">
             <h2 className="font-semibold tracking-tight">Consumer impact</h2>
             <span className="rounded-full bg-[var(--signal)]/10 px-2 py-0.5 text-[10px] font-semibold text-[var(--signal-deep)]">
-              3 exposed
+              {consumers.filter((consumer) => consumer.exposed).length} exposed
             </span>
           </div>
           <p className="mt-1 text-xs text-black/45">
@@ -67,14 +77,17 @@ export function ImpactMap() {
           <div className="flex items-center gap-2 font-mono text-[10px] text-white/70">
             <Radio className="h-3 w-3" /> API SOURCE
           </div>
-          <p className="mt-2 text-sm font-semibold">Payments API</p>
-          <p className="mt-0.5 text-xs text-white/60">v3.0.0 candidate</p>
+          <p className="mt-2 text-sm font-semibold">{service}</p>
+          <p className="mt-0.5 text-xs text-white/60">{candidate} candidate</p>
         </div>
-        {consumers.map((consumer) => (
+        {consumers.map((consumer, index) => (
           <div
             key={consumer.name}
             className={`absolute w-36 -translate-x-1/2 -translate-y-1/2 rounded-2xl border bg-white p-3 shadow-sm ${consumer.exposed ? "border-[var(--signal)]/25" : "border-black/[0.08]"}`}
-            style={{ left: `${consumer.x}%`, top: `${consumer.y}%` }}
+            style={{
+              left: `${positions[index]?.x ?? 50}%`,
+              top: `${positions[index]?.y ?? 50}%`,
+            }}
           >
             <div className="flex items-center gap-1.5 font-mono text-[9px] text-black/35 uppercase">
               <GitBranch className="h-3 w-3" /> consumer

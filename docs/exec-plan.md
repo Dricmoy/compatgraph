@@ -14,8 +14,8 @@ The first public demonstration will use a realistic payments API. It will show a
 
 - [x] (2026-09-16 23:20Z) Created the public `Dricmoy/compatgraph` repository and configured a repository-local personal Git identity.
 - [x] (2026-09-16 23:28Z) Generated the Next.js 16, React 19, TypeScript, and Tailwind foundation on `feat/foundation`.
-- [ ] Deliver pull request 1 with the branded public experience, sample dashboard, engineering standards, tests, and CI. (2026-09-16 23:34Z: implementation and local validation complete; remaining: remote issue, pull request, green GitHub checks, review, and merge.)
-- [ ] Deliver pull request 2 with PostgreSQL, migrations, seed data, and server-side dashboard queries.
+- [x] (2026-09-16 23:38Z) Delivered and merged pull request 2 with the branded public experience, sample dashboard, engineering standards, tests, and two green GitHub Actions checks; issue 1 closed automatically.
+- [ ] Deliver the PostgreSQL milestone with migrations, seed data, and server-side dashboard queries. (2026-09-16 23:45Z: schema, initial migration, idempotent seed, query layer, health route, integration tests, and CI service configuration implemented locally; remaining: complete validation and ship the focused pull request.)
 - [ ] Deliver pull request 3 with deterministic OpenAPI parsing and breaking-change analysis.
 - [ ] Deliver pull request 4 with persisted analyses, consumer impact mapping, and an interactive graph.
 - [ ] Deliver pull request 5 with authentication, GitHub repository connection, and background analysis jobs.
@@ -33,6 +33,8 @@ The first public demonstration will use a realistic payments API. It will show a
   Evidence: The first production build failed while resolving the compiler package; after adding version 1.0.0, `pnpm check` completed successfully.
 - Observation: Vitest includes all matching test files unless browser tests are explicitly excluded.
   Evidence: The first unit run attempted to execute `tests/e2e/product.spec.ts`; adding that directory to `vitest.config.ts` produced one passing unit suite while Playwright separately reported two passing browser tests.
+- Observation: The Next.js `server-only` package intentionally throws in a generic Vitest runtime even when the imported module is conceptually server code.
+  Evidence: The first database integration run failed at `server-only/index.js`; a test-only empty alias preserves the production boundary while allowing direct server query tests.
 
 ## Decision Log
 
@@ -48,10 +50,13 @@ The first public demonstration will use a realistic payments API. It will show a
 - Decision: Develop through milestone pull requests with required automated checks.
   Rationale: The repository itself must demonstrate professional engineering workflow, not only a polished final screenshot.
   Date/Author: 2026-09-16 / Codex
+- Decision: Normalize ownership and impact instead of storing dashboard-shaped JSON.
+  Rationale: Separate organization, team, project, contract, release, change, consumer, impact-edge, and activity tables make referential integrity and future ingestion behavior observable while keeping the read model assembled in one server-only query boundary.
+  Date/Author: 2026-09-16 / Codex
 
 ## Outcomes & Retrospective
 
-The repository and implementation branch exist. No milestone is complete yet. The first product shell is locally implemented and visually inspected at desktop width. Formatting, lint, strict type checking, two unit assertions, production build, and two Chromium journeys pass. The immediate remaining outcome is to publish pull request 1, observe its GitHub checks, review its remote diff, and merge it before starting PostgreSQL work.
+The foundation milestone is merged. Its remote quality/build check passed in 1 minute 12 seconds and its browser check passed in 44 seconds. The database milestone is implemented locally against PostgreSQL 17: migration succeeded from an empty volume, and the seed ran twice without duplication or errors. Final database-backed application and CI validation remain before its pull request.
 
 ## Context and Orientation
 
@@ -92,7 +97,13 @@ For database milestones, start PostgreSQL with:
 
     docker compose up -d postgres
 
-Migration and seed commands will be added to this section when their script names exist. They must work from an empty volume and may be rerun without duplicating demonstration records.
+The commands now exist and are:
+
+    cp .env.example .env
+    pnpm db:migrate
+    pnpm db:seed
+
+`pnpm db:migrate` applies committed SQL under `drizzle/`. `pnpm db:seed` upserts the synthetic Acme Platform demonstration and is expected to print `Seeded the CompatGraph demonstration workspace.` on every safe rerun.
 
 ## Validation and Acceptance
 
@@ -122,6 +133,9 @@ Local milestone 1 evidence:
     vitest: 1 file, 2 tests passed
     next build: / and /dashboard statically rendered
     playwright: 2 Chromium tests passed in 5.2 seconds
+    pull request 2: merged at commit d6fb59d055691b5b9b64370b247cfe1c9034c283
+    hosted quality/build: passed in 1 minute 12 seconds
+    hosted browser smoke tests: passed in 44 seconds
 
 ## Interfaces and Dependencies
 
@@ -129,4 +143,4 @@ Next.js 16 and React 19 provide the web and server-rendering framework. TypeScri
 
 The analysis boundary will expose a function shaped like `analyzeContracts(baseline, candidate): AnalysisResult`, where each input is a parsed and validated OpenAPI document and the result contains stable findings and summary counts. The persistence boundary will expose server-only queries rather than leaking raw database records into client components. Background execution will accept stable job identifiers and be safe to retry.
 
-Plan revision note, 2026-09-16 23:34Z: Recorded the implemented foundation, successful local checks, visual inspection, and configuration discoveries before opening pull request 1.
+Plan revision note, 2026-09-16 23:45Z: Recorded the merged foundation evidence and the implemented PostgreSQL schema, migration, retry-safe seed, server query boundary, and test-runtime discovery.

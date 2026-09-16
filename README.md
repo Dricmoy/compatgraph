@@ -14,14 +14,14 @@ The committed [execution plan](docs/exec-plan.md) is the living specification an
 
 ## Current milestone
 
-The foundation milestone delivers:
+The merged foundation delivers:
 
 - a polished public product experience and realistic release dashboard;
 - strict TypeScript, linting, formatting, unit tests, and browser tests;
 - reproducible GitHub Actions checks;
 - an incremental plan for PostgreSQL, deterministic OpenAPI analysis, consumer impact mapping, GitHub integration, telemetry, and production deployment.
 
-Dashboard content is realistic demonstration data until the PostgreSQL milestone lands. The UI labels and documentation will distinguish demo evidence from live production evidence throughout development.
+The active milestone replaces in-memory dashboard fixtures with normalized PostgreSQL records, committed migrations, and an idempotent demonstration seed. The demonstration remains synthetic; the storage and query path are real.
 
 ## Local development
 
@@ -36,6 +36,10 @@ Install and run:
 
 ```bash
 pnpm install --frozen-lockfile
+docker compose up -d postgres
+cp .env.example .env
+pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
 
@@ -51,13 +55,13 @@ pnpm test:e2e
 
 ## Architecture
 
-CompatGraph begins as a modular Next.js application. Server Components own data access and rendering; small Client Components are added only for interaction. PostgreSQL becomes the authoritative store in milestone 2. Deterministic contract analysis remains independent of the web framework so it can later run in retry-safe background workers without changing its results.
+CompatGraph is a modular Next.js application. Server Components own data access and rendering; small Client Components are added only for interaction. PostgreSQL is the authoritative store for organizations, teams, projects, contracts, releases, changes, consumers, impact edges, and activity. Deterministic contract analysis remains independent of the web framework so it can later run in retry-safe background workers without changing its results.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the pull-request workflow and [docs/exec-plan.md](docs/exec-plan.md) for the complete design, validation, and recovery contract.
+See [docs/architecture.md](docs/architecture.md) for the runtime and persistence design, [CONTRIBUTING.md](CONTRIBUTING.md) for the pull-request workflow, and [docs/exec-plan.md](docs/exec-plan.md) for the complete delivery, validation, and recovery contract.
 
 ## Status
 
-Active development. The public repository exists, but the database-backed analysis workflow and production deployment are not complete yet.
+Active development. The public repository and database-backed dashboard exist, but contract upload, deterministic analysis, authentication, and production deployment are not complete yet.
 
 ## License
 

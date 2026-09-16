@@ -1,13 +1,23 @@
 import { ArrowRight } from "lucide-react";
 
-import { activity } from "@/lib/demo-data";
+import type { DashboardActivity } from "@/data/dashboard";
 
-export function ActivityPanel() {
+export function ActivityPanel({
+  activity,
+  service,
+  candidate,
+}: {
+  activity: DashboardActivity[];
+  service: string;
+  candidate: string;
+}) {
   return (
     <section className="rounded-2xl border border-black/[0.07] bg-white">
       <div className="border-b border-black/[0.07] px-5 py-4">
         <h2 className="font-semibold tracking-tight">Release activity</h2>
-        <p className="mt-1 text-xs text-black/45">Payments API · v3.0.0</p>
+        <p className="mt-1 text-xs text-black/45">
+          {service} · {candidate}
+        </p>
       </div>
       <div className="px-5 py-2">
         {activity.map((event, index) => (
