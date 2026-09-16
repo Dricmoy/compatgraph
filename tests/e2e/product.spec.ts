@@ -33,3 +33,13 @@ test("public experience is usable at a mobile viewport", async ({ page }) => {
     page.getByRole("heading", { name: "Ship APIs. Keep trust." }),
   ).toBeVisible();
 });
+
+test("health endpoint proves PostgreSQL connectivity", async ({ request }) => {
+  const response = await request.get("/api/health");
+
+  expect(response.ok()).toBe(true);
+  await expect(response.json()).resolves.toMatchObject({
+    status: "ok",
+    database: "connected",
+  });
+});

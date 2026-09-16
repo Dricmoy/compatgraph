@@ -14,9 +14,23 @@ import { ActivityPanel } from "@/components/dashboard/activity-panel";
 import { ChangeList } from "@/components/dashboard/change-list";
 import { ImpactMap } from "@/components/dashboard/impact-map";
 import { MetricCard } from "@/components/dashboard/metric-card";
-import { releaseOverview } from "@/lib/demo-data";
+import { getLatestReleaseDashboard } from "@/data/dashboard";
 
-export default function DashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DashboardPage() {
+  const releaseOverview = await getLatestReleaseDashboard("payments-api");
+  const analyzedLabel = releaseOverview.analyzedAt
+    ? new Intl.DateTimeFormat("en-CA", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "America/Edmonton",
+      }).format(releaseOverview.analyzedAt)
+    : "analysis in progress";
+  const exposedConsumers = releaseOverview.graphConsumers.filter(
+    (consumer) => consumer.exposed,
+  ).length;
+
   return (
     <main className="min-h-screen">
       <header className="sticky top-0 z-20 flex h-19 items-center justify-between border-b border-black/[0.07] bg-[#f3f4ee]/90 px-4 backdrop-blur-xl sm:px-7">
@@ -31,7 +45,7 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-center gap-2">
               <Link href="/" className="text-sm text-black/40 hover:text-black">
-                Acme Platform
+                {releaseOverview.organization}
               </Link>
               <span className="text-black/20">/</span>
               <span className="text-sm font-semibold">
@@ -73,17 +87,17 @@ export default function DashboardPage() {
             <p className="mt-2 text-sm text-black/45">
               {releaseOverview.baseline}{" "}
               <span className="mx-1.5 text-black/25">→</span>{" "}
-              {releaseOverview.candidate} · analyzed 2 minutes ago
+              {releaseOverview.candidate} · analyzed {analyzedLabel}
             </p>
           </div>
           <div className="flex items-center gap-3 rounded-2xl border border-[var(--signal)]/15 bg-[var(--signal)]/[0.055] px-4 py-3">
             <AlertTriangle className="h-5 w-5 text-[var(--signal-deep)]" />
             <div>
               <p className="text-xs font-semibold text-[var(--signal-deep)]">
-                Release gate blocked
+                Release gate {releaseOverview.status}
               </p>
               <p className="mt-0.5 text-[11px] text-black/45">
-                3 consumer migrations required
+                {exposedConsumers} consumer migrations required
               </p>
             </div>
           </div>
@@ -103,14 +117,14 @@ export default function DashboardPage() {
           <MetricCard
             label="Contract changes"
             value={String(releaseOverview.findings)}
-            detail="3 breaking, 2 dangerous, and 7 additive."
+            detail={`${releaseOverview.severityCounts.breaking} breaking, ${releaseOverview.severityCounts.dangerous} dangerous, and ${releaseOverview.severityCounts.safe} additive.`}
             icon={GitCompareArrows}
             tone="violet"
           />
           <MetricCard
             label="Consumers mapped"
             value={String(releaseOverview.consumers)}
-            detail="6 active applications and 2 published SDKs."
+            detail={`${releaseOverview.consumerKindCounts.application + releaseOverview.consumerKindCounts.worker} active services and ${releaseOverview.consumerKindCounts.sdk} published SDKs.`}
             icon={Cable}
             tone="mint"
           />
@@ -124,9 +138,17 @@ export default function DashboardPage() {
         </section>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-3">
-          <ImpactMap />
-          <ActivityPanel />
-          <ChangeList />
+          <ImpactMap
+            consumers={releaseOverview.graphConsumers}
+            service={releaseOverview.service}
+            candidate={releaseOverview.candidate}
+          />
+          <ActivityPanel
+            activity={releaseOverview.activity}
+            service={releaseOverview.service}
+            candidate={releaseOverview.candidate}
+          />
+          <ChangeList changes={releaseOverview.priorityChanges} />
         </div>
       </div>
     </main>

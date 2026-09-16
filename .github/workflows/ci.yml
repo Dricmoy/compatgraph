@@ -18,6 +18,22 @@ jobs:
     name: Quality and build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://compatgraph:compatgraph@localhost:5432/compatgraph
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: compatgraph
+          POSTGRES_USER: compatgraph
+          POSTGRES_PASSWORD: compatgraph
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U compatgraph -d compatgraph"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -32,6 +48,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Migrate and seed PostgreSQL
+        run: pnpm db:migrate && pnpm db:seed
       - name: Check formatting
         run: pnpm format:check
       - name: Lint
@@ -47,6 +65,22 @@ jobs:
     name: Browser smoke tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DATABASE_URL: postgresql://compatgraph:compatgraph@localhost:5432/compatgraph
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: compatgraph
+          POSTGRES_USER: compatgraph
+          POSTGRES_PASSWORD: compatgraph
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U compatgraph -d compatgraph"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -61,6 +95,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Migrate and seed PostgreSQL
+        run: pnpm db:migrate && pnpm db:seed
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Run browser tests

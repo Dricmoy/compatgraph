@@ -1,8 +1,8 @@
 import { AlertTriangle, ArrowRight, Users } from "lucide-react";
 
-import { changes } from "@/lib/demo-data";
+import type { DashboardChange } from "@/data/dashboard";
 
-export function ChangeList() {
+export function ChangeList({ changes }: { changes: DashboardChange[] }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-black/[0.07] bg-white lg:col-span-3">
       <div className="flex items-center justify-between border-b border-black/[0.07] px-5 py-4">
@@ -16,7 +16,7 @@ export function ChangeList() {
           className="flex items-center gap-1.5 text-xs font-semibold text-black/55 hover:text-black"
           type="button"
         >
-          View all 12 <ArrowRight className="h-3.5 w-3.5" />
+          View all findings <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
       <div className="divide-y divide-black/[0.06]">
