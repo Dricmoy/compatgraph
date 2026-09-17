@@ -17,9 +17,9 @@ The first public demonstration will use a realistic payments API. It will show a
 - [x] (2026-09-16 23:38Z) Delivered and merged pull request 2 with the branded public experience, sample dashboard, engineering standards, tests, and two green GitHub Actions checks; issue 1 closed automatically.
 - [x] (2026-09-17 00:18Z) Delivered and merged pull request 4 with PostgreSQL 17, Drizzle migrations, idempotent demonstration data, database-backed dashboard queries, integration coverage, and database-enabled CI.
 - [x] (2026-09-17 04:50Z) Delivered and merged pull request 6 with deterministic OpenAPI 3.0/3.1 parsing, direction-aware compatibility rules, stable findings, a bounded preview endpoint, and a versioned fixture corpus.
-- [ ] Deliver persisted analyses, consumer impact mapping, and an interactive graph. (2026-09-17 05:05Z: issue 7 tracks the work; additive schema, retry-safe transaction, upload UI, release workspace, consumer graph, and local tests are implemented; remaining: clean-database validation and hosted review.)
+- [x] (2026-09-17 05:14Z) Delivered and merged pull request 8 with persisted idempotent analyses, operation-level consumer mapping, a polished comparison editor, and an interactive reload-safe release workspace.
 - [ ] Deliver authentication, GitHub repository connection, and background analysis jobs.
-- [ ] Deliver OpenTelemetry, performance budgets, security hardening, and chaos/failure tests.
+- [ ] Deliver OpenTelemetry, performance budgets, security hardening, and chaos/failure tests. (2026-09-17 05:24Z: issue 9 tracks the work; database rate limiting, structured correlation logs, OpenTelemetry, security headers, security workflows, benchmark and operations documentation are implemented locally.)
 - [ ] Provision managed PostgreSQL and a production web deployment, run migrations, seed the demonstration workspace, and verify the public URL.
 - [ ] Protect the default branch, publish architecture and incident documentation, and complete the final acceptance audit.
 
@@ -56,10 +56,13 @@ The first public demonstration will use a realistic payments API. It will show a
 - Decision: Classify enum compatibility by data direction.
   Rationale: Removing an accepted request value breaks existing callers, while adding a possible response value can surprise clients with exhaustive enum handling. Direction-aware rules describe actual consumer risk more accurately than a syntax-only diff.
   Date/Author: 2026-09-17 / Codex
+- Decision: Enforce public write quotas in PostgreSQL and hash client identifiers before storage.
+  Rationale: A process-local limiter does not survive serverless scaling, while raw network identifiers are unnecessary for quota enforcement. Atomic upserts give every instance one shared decision without turning rate-limit data into user analytics.
+  Date/Author: 2026-09-17 / Codex
 
 ## Outcomes & Retrospective
 
-The first three milestones are merged with green hosted checks. The active persistence milestone now completes the first real user loop locally: submit two contracts, transactionally store a content-addressed analysis, map operation-level consumer evidence, reload the release from PostgreSQL, filter findings, and update the impact graph by selection.
+The first four milestones are merged with green hosted checks and complete the core public user loop. The active production-evidence milestone is locally instrumented and hardened. Managed hosting remains blocked only on provider authentication and provisioning; no deployment credentials are present on this host.
 
 ## Context and Orientation
 
@@ -168,6 +171,19 @@ Local milestone 4 evidence:
     restart: saved release returned 200 after the Next.js process restarted
     vitest: 6 files, 15 tests passed
     playwright: 6 Chromium tests passed, including mobile comparison and persisted reload
+    pull request 8: merged at commit d68222a51d454516b1187954451714ca77287620
+    hosted quality/build: passed in 1 minute 9 seconds
+    hosted browser smoke tests: passed in 1 minute 5 seconds
+
+Local production-evidence milestone:
+
+    clean database: migrations 0000 through 0003 applied, seed repeated safely, integration suite passed
+    vitest: 8 files, 20 tests passed, including concurrent rate limiting and database fault injection
+    playwright: 7 Chromium journeys passed, including response security headers
+    production build: passed with all static and dynamic routes generated
+    deterministic benchmark: 500 iterations, 0.045 ms median, 0.084 ms p95, stable 14-finding digest
+    optimized local smoke: landing 35 ms, database health 37 ms, deterministic preview 35 ms
+    incident rehearsal: readiness returned a bounded 503 during simulated database loss and recovered without state mutation
 
 ## Interfaces and Dependencies
 
@@ -175,4 +191,4 @@ Next.js 16 and React 19 provide the web and server-rendering framework. TypeScri
 
 The analysis boundary exposes a function shaped like `analyzeContracts(baseline, candidate): AnalysisResult`, where each input is a parsed and validated OpenAPI document and the result contains stable findings and summary counts. The persistence boundary exposes server-only queries rather than leaking raw database records into client components. Background execution will accept stable job identifiers and be safe to retry.
 
-Plan revision note, 2026-09-17 05:05Z: Recorded the merged analyzer evidence and local implementation of persisted, idempotent analyses with operation-level consumer mapping and an interactive release workspace.
+Plan revision note, 2026-09-17 05:28Z: Recorded the merged persistence milestone and complete local production-hardening evidence: privacy-preserving distributed rate limits, correlation logs, OpenTelemetry registration, security headers and workflows, benchmark budgets, threat model, operations runbook, and a database-readiness failure rehearsal.

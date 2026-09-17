@@ -13,12 +13,16 @@ describe("POST /api/analyze/preview", () => {
     const response = await POST(
       new Request("http://localhost/api/analyze/preview", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "x-forwarded-for": "preview-success-test",
+        },
         body: JSON.stringify({ baseline, candidate }),
       }),
     );
 
     expect(response.status).toBe(200);
+    expect(response.headers.get("x-request-id")).toMatch(/^[a-f0-9-]{36}$/);
     await expect(response.json()).resolves.toMatchObject({
       data: {
         engineVersion: "1",
@@ -32,12 +36,14 @@ describe("POST /api/analyze/preview", () => {
     const invalidRequest = await POST(
       new Request("http://localhost/api/analyze/preview", {
         method: "POST",
+        headers: { "x-forwarded-for": "preview-invalid-request-test" },
         body: "not-json",
       }),
     );
     const invalidContract = await POST(
       new Request("http://localhost/api/analyze/preview", {
         method: "POST",
+        headers: { "x-forwarded-for": "preview-invalid-contract-test" },
         body: JSON.stringify({ baseline: "hello: world", candidate }),
       }),
     );
@@ -56,6 +62,7 @@ describe("POST /api/analyze/preview", () => {
     const response = await POST(
       new Request("http://localhost/api/analyze/preview", {
         method: "POST",
+        headers: { "x-forwarded-for": "preview-payload-test" },
         body: JSON.stringify({
           baseline: "x".repeat(512 * 1024 + 1),
           candidate,

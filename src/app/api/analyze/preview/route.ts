@@ -5,6 +5,8 @@ import {
   ContractParseError,
   parseContract,
 } from "@/analysis";
+import { enforceRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+import { createRequestContext } from "@/lib/request-context";
 
 const MAX_CONTRACT_BYTES = 512 * 1024;
 const MAX_REQUEST_BYTES = MAX_CONTRACT_BYTES * 2 + 16 * 1024;
@@ -15,17 +17,51 @@ const analysisRequestSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const context = createRequestContext("analysis.preview");
+  const rateLimit = await enforceRateLimit(request, {
+    namespace: "analysis-preview",
+    limit: 30,
+    windowSeconds: 60 * 60,
+  });
+  const complete = (response: Response, event: string) => {
+    for (const [key, value] of Object.entries(rateLimitHeaders(rateLimit))) {
+      response.headers.set(key, value);
+    }
+    return context.complete(response, event);
+  };
+
+  if (!rateLimit.allowed) {
+    const response = Response.json(
+      {
+        error: {
+          code: "rate_limited",
+          message: "Too many previews were requested. Try again later.",
+        },
+      },
+      { status: 429 },
+    );
+    for (const [key, value] of Object.entries(
+      rateLimitHeaders(rateLimit, true),
+    )) {
+      response.headers.set(key, value);
+    }
+    return context.complete(response, "preview.rate_limited");
+  }
+
   const rawBody = await request.text();
 
   if (byteLength(rawBody) > MAX_REQUEST_BYTES) {
-    return Response.json(
-      {
-        error: {
-          code: "payload_too_large",
-          message: "Each OpenAPI contract must be 512 KiB or smaller.",
+    return complete(
+      Response.json(
+        {
+          error: {
+            code: "payload_too_large",
+            message: "Each OpenAPI contract must be 512 KiB or smaller.",
+          },
         },
-      },
-      { status: 413 },
+        { status: 413 },
+      ),
+      "preview.rejected",
     );
   }
 
@@ -33,14 +69,17 @@ export async function POST(request: Request) {
   try {
     body = JSON.parse(rawBody);
   } catch {
-    return Response.json(
-      {
-        error: {
-          code: "invalid_request",
-          message: "The request body must be valid JSON.",
+    return complete(
+      Response.json(
+        {
+          error: {
+            code: "invalid_request",
+            message: "The request body must be valid JSON.",
+          },
         },
-      },
-      { status: 400 },
+        { status: 400 },
+      ),
+      "preview.rejected",
     );
   }
 
@@ -49,49 +88,62 @@ export async function POST(request: Request) {
     (byteLength(body.baseline) > MAX_CONTRACT_BYTES ||
       byteLength(body.candidate) > MAX_CONTRACT_BYTES)
   ) {
-    return Response.json(
-      {
-        error: {
-          code: "payload_too_large",
-          message: "Each OpenAPI contract must be 512 KiB or smaller.",
+    return complete(
+      Response.json(
+        {
+          error: {
+            code: "payload_too_large",
+            message: "Each OpenAPI contract must be 512 KiB or smaller.",
+          },
         },
-      },
-      { status: 413 },
+        { status: 413 },
+      ),
+      "preview.rejected",
     );
   }
 
   const requestResult = analysisRequestSchema.safeParse(body);
   if (!requestResult.success) {
-    return Response.json(
-      {
-        error: {
-          code: "invalid_request",
-          message: "Provide non-empty baseline and candidate contract strings.",
-          issues: requestResult.error.issues.map((issue) => ({
-            path: issue.path.join("."),
-            message: issue.message,
-          })),
+    return complete(
+      Response.json(
+        {
+          error: {
+            code: "invalid_request",
+            message:
+              "Provide non-empty baseline and candidate contract strings.",
+            issues: requestResult.error.issues.map((issue) => ({
+              path: issue.path.join("."),
+              message: issue.message,
+            })),
+          },
         },
-      },
-      { status: 400 },
+        { status: 400 },
+      ),
+      "preview.rejected",
     );
   }
 
   try {
     const baseline = parseContract(requestResult.data.baseline);
     const candidate = parseContract(requestResult.data.candidate);
-    return Response.json({ data: analyzeContracts(baseline, candidate) });
+    return complete(
+      Response.json({ data: analyzeContracts(baseline, candidate) }),
+      "preview.completed",
+    );
   } catch (error) {
     if (error instanceof ContractParseError) {
-      return Response.json(
-        {
-          error: {
-            code: error.code,
-            message: error.message,
-            issues: error.issues,
+      return complete(
+        Response.json(
+          {
+            error: {
+              code: error.code,
+              message: error.message,
+              issues: error.issues,
+            },
           },
-        },
-        { status: 422 },
+          { status: 422 },
+        ),
+        "preview.rejected",
       );
     }
 

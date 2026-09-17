@@ -11,6 +11,7 @@ flowchart LR
     Analyzer -->|stable findings| Data
     Next -->|server-only queries| Data[Data access layer]
     Data -->|pooled SQL| Postgres[(PostgreSQL)]
+    Next -->|spans + structured events| Telemetry[Observability backend]
     Next -->|health probe| Health[/api/health]
     Health -->|SELECT 1| Postgres
     CI[GitHub Actions] -->|migrate and seed| Postgres
@@ -18,6 +19,14 @@ flowchart LR
 ```
 
 Pages and layouts in `src/app` are React Server Components by default. They can read through `src/data`, but they do not issue HTTP requests back into their own route handlers. Interactive browser-only behavior will be isolated in small Client Components. `src/db/client.ts` lazily creates the PostgreSQL client so importing a page during build does not require a connection.
+
+## Security and observability
+
+Public analysis routes enforce atomic PostgreSQL rate limits shared by every web instance. Client network identifiers are combined with a provider secret and SHA-256 hashed before storage; neither contract bodies nor raw identifiers enter logs. Production refuses to rate-limit without `RATE_LIMIT_SALT`, so a configuration error fails closed.
+
+Every API response receives an `x-request-id` and `server-timing` measurement. Structured JSON events carry an explicit metadata allowlist and the active OpenTelemetry trace identifier. `src/instrumentation.ts` registers the `compatgraph` service through `@vercel/otel`; Next.js supplies the incoming request and framework spans.
+
+Global response headers enforce a restrictive content security policy, deny framing, disable MIME sniffing and unnecessary browser capabilities, and enable HSTS in production. The complete boundary and residual risks are documented in `docs/threat-model.md`.
 
 ## Compatibility analysis
 
@@ -56,6 +65,8 @@ Database constraints protect stable slugs, contract hashes, analysis idempotency
 `src/db/schema.ts` is the typed model used by application code. SQL under `drizzle/` is the deployment artifact. Migrations are additive and immutable once shared. The application must remain compatible with the prior schema during a deployment rollback window.
 
 The synthetic demonstration seed uses stable identifiers and upserts. Running `pnpm db:seed` repeatedly updates the same rows and never creates duplicates. A failed web deployment can roll back to the previous immutable application build. Database rollback should use a forward corrective migration rather than editing or removing an applied migration.
+
+Short-lived rate-limit rows are operational state, not product analytics. Their primary keys contain only a namespace and salted digest. A scheduled cleanup can remove expired rows without affecting releases or audit history.
 
 ## Planned evolution
 
