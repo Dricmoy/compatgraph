@@ -16,8 +16,8 @@ The first public demonstration will use a realistic payments API. It will show a
 - [x] (2026-09-16 23:28Z) Generated the Next.js 16, React 19, TypeScript, and Tailwind foundation on `feat/foundation`.
 - [x] (2026-09-16 23:38Z) Delivered and merged pull request 2 with the branded public experience, sample dashboard, engineering standards, tests, and two green GitHub Actions checks; issue 1 closed automatically.
 - [x] (2026-09-17 00:18Z) Delivered and merged pull request 4 with PostgreSQL 17, Drizzle migrations, idempotent demonstration data, database-backed dashboard queries, integration coverage, and database-enabled CI.
-- [ ] Deliver the deterministic OpenAPI parsing and breaking-change analysis milestone. (2026-09-17 00:48Z: issue 5 tracks the work; implementation and local quality gates are complete; remaining: focused pull request and hosted checks.)
-- [ ] Deliver persisted analyses, consumer impact mapping, and an interactive graph.
+- [x] (2026-09-17 04:50Z) Delivered and merged pull request 6 with deterministic OpenAPI 3.0/3.1 parsing, direction-aware compatibility rules, stable findings, a bounded preview endpoint, and a versioned fixture corpus.
+- [ ] Deliver persisted analyses, consumer impact mapping, and an interactive graph. (2026-09-17 05:05Z: issue 7 tracks the work; additive schema, retry-safe transaction, upload UI, release workspace, consumer graph, and local tests are implemented; remaining: clean-database validation and hosted review.)
 - [ ] Deliver authentication, GitHub repository connection, and background analysis jobs.
 - [ ] Deliver OpenTelemetry, performance budgets, security hardening, and chaos/failure tests.
 - [ ] Provision managed PostgreSQL and a production web deployment, run migrations, seed the demonstration workspace, and verify the public URL.
@@ -59,7 +59,7 @@ The first public demonstration will use a realistic payments API. It will show a
 
 ## Outcomes & Retrospective
 
-The foundation milestone is merged. Its remote quality/build check passed in 1 minute 12 seconds and its browser check passed in 44 seconds. The database milestone is also merged: migration succeeded from an empty PostgreSQL 17 volume, the seed ran twice without duplication, the database-backed browser journey passed, and both hosted checks succeeded. Deterministic OpenAPI analysis is implemented and locally green across 11 unit and route tests plus four browser journeys; hosted review remains.
+The first three milestones are merged with green hosted checks. The active persistence milestone now completes the first real user loop locally: submit two contracts, transactionally store a content-addressed analysis, map operation-level consumer evidence, reload the release from PostgreSQL, filter findings, and update the impact graph by selection.
 
 ## Context and Orientation
 
@@ -150,10 +150,29 @@ Milestone 2 evidence:
     hosted quality/build: passed in 1 minute
     hosted browser smoke tests: passed in 1 minute 13 seconds
 
+Milestone 3 evidence:
+
+    fixture result: 7 breaking, 2 dangerous, and 5 safe findings
+    vitest: 4 files, 11 tests passed
+    playwright: 4 Chromium tests passed
+    pull request 6: merged at commit 277e95184d08078ffe2673eb5e7e2e024954e1f3
+    hosted quality/build: passed in 59 seconds
+    hosted browser smoke tests: passed in 1 minute 7 seconds
+
+Local milestone 4 evidence:
+
+    empty-database migration: all committed migrations applied successfully
+    seed: succeeded twice on the empty rehearsal database
+    idempotency: first analysis returned 201; identical retry returned 200 and the same release id
+    persisted result: 14 findings, 32 impact edges, and 6 unique consumers
+    restart: saved release returned 200 after the Next.js process restarted
+    vitest: 6 files, 15 tests passed
+    playwright: 6 Chromium tests passed, including mobile comparison and persisted reload
+
 ## Interfaces and Dependencies
 
 Next.js 16 and React 19 provide the web and server-rendering framework. TypeScript runs in strict mode. Tailwind CSS 4 provides design tokens and styling. Vitest covers framework-independent logic and component behavior; Playwright covers real browser journeys. Zod will validate untrusted contract and form input. PostgreSQL and Drizzle ORM will provide typed persistence. OpenTelemetry will expose traces and metrics. GitHub Actions is the authoritative continuous-integration environment.
 
 The analysis boundary exposes a function shaped like `analyzeContracts(baseline, candidate): AnalysisResult`, where each input is a parsed and validated OpenAPI document and the result contains stable findings and summary counts. The persistence boundary exposes server-only queries rather than leaking raw database records into client components. Background execution will accept stable job identifiers and be safe to retry.
 
-Plan revision note, 2026-09-17 00:48Z: Recorded local completion of the deterministic analyzer, direction-aware compatibility semantics, fixture corpus, bounded preview endpoint, and verification results.
+Plan revision note, 2026-09-17 05:05Z: Recorded the merged analyzer evidence and local implementation of persisted, idempotent analyses with operation-level consumer mapping and an interactive release workspace.

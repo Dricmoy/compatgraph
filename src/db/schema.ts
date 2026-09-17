@@ -106,7 +106,7 @@ export const apiContracts = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("api_contracts_project_version_unique").on(
+    index("api_contracts_project_version_idx").on(
       table.projectId,
       table.version,
     ),
@@ -130,6 +130,7 @@ export const releases = pgTable(
     candidateContractId: text("candidate_contract_id")
       .notNull()
       .references(() => apiContracts.id, { onDelete: "restrict" }),
+    analysisKey: text("analysis_key").notNull(),
     status: releaseStatus("status").notNull(),
     riskScore: integer("risk_score").notNull(),
     analyzedAt: timestamp("analyzed_at", { withTimezone: true }),
@@ -143,6 +144,7 @@ export const releases = pgTable(
       sql`${table.riskScore} between 0 and 100`,
     ),
     index("releases_project_created_idx").on(table.projectId, table.createdAt),
+    uniqueIndex("releases_analysis_key_unique").on(table.analysisKey),
   ],
 );
 
@@ -153,6 +155,7 @@ export const changes = pgTable(
     releaseId: text("release_id")
       .notNull()
       .references(() => releases.id, { onDelete: "cascade" }),
+    ruleId: text("rule_id").notNull().default("legacy-evidence"),
     severity: changeSeverity("severity").notNull(),
     method: text("method").notNull(),
     path: text("path").notNull(),
@@ -193,6 +196,34 @@ export const consumers = pgTable(
       table.name,
     ),
     index("consumers_team_idx").on(table.teamId),
+  ],
+);
+
+export const consumerOperations = pgTable(
+  "consumer_operations",
+  {
+    consumerId: text("consumer_id")
+      .notNull()
+      .references(() => consumers.id, { onDelete: "cascade" }),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    method: text("method").notNull(),
+    path: text("path").notNull(),
+    evidenceSource: text("evidence_source").notNull(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.consumerId, table.projectId, table.method, table.path],
+    }),
+    index("consumer_operations_lookup_idx").on(
+      table.projectId,
+      table.method,
+      table.path,
+    ),
   ],
 );
 

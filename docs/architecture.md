@@ -7,8 +7,8 @@ CompatGraph is a modular full-stack application with a deliberately small deploy
 ```mermaid
 flowchart LR
     Browser[Browser] -->|HTTPS| Next[Next.js application]
-    Next -->|bounded preview request| Analyzer[Deterministic analyzer]
-    Analyzer -->|stable findings| Next
+    Next -->|bounded analysis request| Analyzer[Deterministic analyzer]
+    Analyzer -->|stable findings| Data
     Next -->|server-only queries| Data[Data access layer]
     Data -->|pooled SQL| Postgres[(PostgreSQL)]
     Next -->|health probe| Health[/api/health]
@@ -25,7 +25,7 @@ Pages and layouts in `src/app` are React Server Components by default. They can 
 
 Every finding carries a content-derived identifier, severity, operation, JSON pointer, before and after evidence, and a human explanation. Identifiers exclude presentation copy so editing an explanation does not change finding identity. A request enum narrowing is breaking because existing callers may send a removed value; a response enum widening is dangerous because generated clients may not recognize the new value.
 
-`POST /api/analyze/preview` is a non-persisting boundary for the upcoming upload workflow. It accepts baseline and candidate contract strings, limits each contract to 512 KiB, and returns structured 400, 413, or 422 errors for malformed requests, oversized inputs, or invalid contracts. The endpoint does not fetch references or call external services, keeping analysis reproducible and preventing untrusted contracts from triggering network access.
+`POST /api/analyze/preview` is a non-persisting boundary for CI and rule inspection. `POST /api/analyses` runs the same engine and transactionally persists content-addressed contracts, a release, findings, impact edges, risk, and audit activity. Both boundaries limit each contract to 512 KiB and return structured errors for malformed requests, oversized inputs, or invalid contracts. Neither endpoint fetches references or calls external services, keeping analysis reproducible and preventing untrusted contracts from triggering network access.
 
 ## Persistence model
 
@@ -35,8 +35,10 @@ erDiagram
     ORGANIZATIONS ||--o{ PROJECTS : owns
     ORGANIZATIONS ||--o{ CONSUMERS : owns
     TEAMS ||--o{ CONSUMERS : operates
+    CONSUMERS ||--o{ CONSUMER_OPERATIONS : calls
     PROJECTS ||--o{ API_CONTRACTS : versions
     PROJECTS ||--o{ RELEASES : evaluates
+    PROJECTS ||--o{ CONSUMER_OPERATIONS : exposes
     API_CONTRACTS ||--o{ RELEASES : baseline
     API_CONTRACTS ||--o{ RELEASES : candidate
     RELEASES ||--o{ CHANGES : contains
@@ -45,9 +47,9 @@ erDiagram
     CONSUMERS ||--o{ IMPACT_EDGES : affected_by
 ```
 
-The model keeps evidence normalized rather than storing one dashboard-shaped JSON document. A release points to immutable baseline and candidate contracts. Deterministic findings belong to that release. An impact edge is a many-to-many relationship between a finding and a consumer and records how the relationship was discovered. Team ownership remains independent of releases, allowing ownership changes without rewriting historical findings.
+The model keeps evidence normalized rather than storing one dashboard-shaped JSON document. A release points to immutable baseline and candidate contracts. Deterministic findings belong to that release. Consumer operations record which method and path each consumer calls; exact operation matches create impact edges with their evidence source. Team ownership remains independent of releases, allowing ownership changes without rewriting historical findings.
 
-Database constraints protect stable slugs, contract versions and hashes, consumer names, impact-edge uniqueness, foreign-key integrity, and the 0–100 risk-score range. Indexes follow dashboard access patterns: latest release per project, findings per release and severity, consumer ownership, and chronological activity.
+Database constraints protect stable slugs, contract hashes, analysis idempotency keys, consumer names and operation usage, impact-edge uniqueness, foreign-key integrity, and the 0–100 risk-score range. Indexes follow dashboard and mapper access patterns: latest release per project, findings per release and severity, operations by project/method/path, consumer ownership, and chronological activity.
 
 ## Migration and recovery
 
@@ -57,4 +59,4 @@ The synthetic demonstration seed uses stable identifiers and upserts. Running `p
 
 ## Planned evolution
 
-The web application will next persist analyzer results transactionally. When repository ingestion and larger contracts require durable background work, the same boundary can run in a worker with an idempotency key derived from project, baseline hash, and candidate hash. That extraction is evidence-driven; no queue or service boundary is introduced before the workflow needs retries outside an HTTP request.
+Repository ingestion and larger contracts will require durable background work. The same analysis boundary can run in a worker with the existing idempotency key derived from project, baseline hash, candidate hash, and engine version. That extraction remains evidence-driven; no queue or service boundary is introduced before the workflow needs retries outside an HTTP request.

@@ -33,10 +33,10 @@ export function SiteHeader() {
             GitHub
           </a>
           <Link
-            href="/dashboard"
+            href="/analyze"
             className="flex h-10 items-center gap-2 rounded-full bg-[var(--ink)] px-4 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-black hover:shadow-lg"
           >
-            Live demo
+            Run analysis
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>

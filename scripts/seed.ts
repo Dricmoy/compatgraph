@@ -7,6 +7,7 @@ import {
   activityEvents,
   apiContracts,
   changes,
+  consumerOperations,
   consumers,
   impactEdges,
   organizations,
@@ -139,6 +140,7 @@ const seededConsumers = [
 const seededChanges = [
   {
     id: "chg_1042",
+    ruleId: "request-property-became-required",
     severity: "breaking" as const,
     method: "POST",
     path: "/v1/payment_intents",
@@ -151,6 +153,7 @@ const seededChanges = [
   },
   {
     id: "chg_1045",
+    ruleId: "schema-property-removed",
     severity: "breaking" as const,
     method: "GET",
     path: "/v1/customers/{id}",
@@ -163,6 +166,7 @@ const seededChanges = [
   },
   {
     id: "chg_1051",
+    ruleId: "enum-values-removed",
     severity: "dangerous" as const,
     method: "POST",
     path: "/v1/refunds",
@@ -175,6 +179,7 @@ const seededChanges = [
   },
   {
     id: "chg_1055",
+    ruleId: "parameter-maximum-reduced",
     severity: "dangerous" as const,
     method: "GET",
     path: "/v1/invoices",
@@ -186,6 +191,7 @@ const seededChanges = [
   },
   {
     id: "chg_1058",
+    ruleId: "operation-removed",
     severity: "breaking" as const,
     method: "DELETE",
     path: "/v1/sources/{id}",
@@ -197,6 +203,7 @@ const seededChanges = [
   },
   ...Array.from({ length: 7 }, (_, index) => ({
     id: `chg_${1060 + index}`,
+    ruleId: "operation-added",
     severity: "safe" as const,
     method: index % 2 === 0 ? "GET" : "POST",
     path: `/v1/additive-resource-${index + 1}`,
@@ -209,6 +216,23 @@ const seededChanges = [
 ];
 
 const analyzedAt = new Date("2026-09-16T23:00:00.000Z");
+
+const seededConsumerOperations = [
+  ["con_checkout_web", "POST", "/v1/payment_intents"],
+  ["con_billing_worker", "POST", "/v1/payment_intents"],
+  ["con_partner_sdk", "POST", "/v1/payment_intents"],
+  ["con_customer_portal", "GET", "/v1/customers/{id}"],
+  ["con_support_console", "GET", "/v1/customers/{id}"],
+  ["con_refund_orchestrator", "POST", "/v1/refunds"],
+  ["con_ledger_sync", "GET", "/v1/invoices"],
+  ["con_mobile_sdk", "DELETE", "/v1/sources/{id}"],
+  ["con_checkout_web", "POST", "/payments"],
+  ["con_billing_worker", "POST", "/payments"],
+  ["con_partner_sdk", "POST", "/payments"],
+  ["con_customer_portal", "GET", "/payments/{id}"],
+  ["con_support_console", "GET", "/payments/{id}"],
+  ["con_refund_orchestrator", "POST", "/refunds"],
+] as const;
 
 try {
   await db.transaction(async (tx) => {
@@ -245,6 +269,25 @@ try {
         set: {
           name: "Payments API",
           description: "Public payment orchestration and customer billing API.",
+        },
+      });
+
+    await tx
+      .insert(projects)
+      .values({
+        id: "project_analysis_lab",
+        organizationId: "org_acme",
+        slug: "analysis-lab",
+        name: "Analysis Lab",
+        description:
+          "Public sandbox for deterministic contract compatibility analysis.",
+      })
+      .onConflictDoUpdate({
+        target: projects.id,
+        set: {
+          name: "Analysis Lab",
+          description:
+            "Public sandbox for deterministic contract compatibility analysis.",
         },
       });
 
@@ -288,13 +331,19 @@ try {
         projectId: "project_payments",
         baselineContractId: "contract_payments_2_8_0",
         candidateContractId: "contract_payments_3_0_0",
+        analysisKey: "demo-payments-2.8.0-to-3.0.0",
         status: "blocked",
         riskScore: 78,
         analyzedAt,
       })
       .onConflictDoUpdate({
         target: releases.id,
-        set: { status: "blocked", riskScore: 78, analyzedAt },
+        set: {
+          analysisKey: "demo-payments-2.8.0-to-3.0.0",
+          status: "blocked",
+          riskScore: 78,
+          analyzedAt,
+        },
       });
 
     for (const change of seededChanges) {
@@ -305,6 +354,7 @@ try {
           target: changes.id,
           set: {
             severity: change.severity,
+            ruleId: change.ruleId,
             title: change.title,
             detail: change.detail,
             beforeSnapshot: change.beforeSnapshot,
@@ -327,6 +377,34 @@ try {
             teamId: consumer.teamId,
             kind: consumer.kind,
             name: consumer.name,
+          },
+        });
+    }
+
+    for (const [consumerId, method, path] of seededConsumerOperations) {
+      const projectId = path.startsWith("/v1/")
+        ? "project_payments"
+        : "project_analysis_lab";
+      await tx
+        .insert(consumerOperations)
+        .values({
+          consumerId,
+          projectId,
+          method,
+          path,
+          evidenceSource: "repository-callsite",
+          lastSeenAt: analyzedAt,
+        })
+        .onConflictDoUpdate({
+          target: [
+            consumerOperations.consumerId,
+            consumerOperations.projectId,
+            consumerOperations.method,
+            consumerOperations.path,
+          ],
+          set: {
+            evidenceSource: "repository-callsite",
+            lastSeenAt: analyzedAt,
           },
         });
     }
