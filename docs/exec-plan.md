@@ -19,9 +19,10 @@ The first public demonstration will use a realistic payments API. It will show a
 - [x] (2026-09-17 04:50Z) Delivered and merged pull request 6 with deterministic OpenAPI 3.0/3.1 parsing, direction-aware compatibility rules, stable findings, a bounded preview endpoint, and a versioned fixture corpus.
 - [x] (2026-09-17 05:14Z) Delivered and merged pull request 8 with persisted idempotent analyses, operation-level consumer mapping, a polished comparison editor, and an interactive reload-safe release workspace.
 - [ ] Deliver authentication, GitHub repository connection, and background analysis jobs.
-- [ ] Deliver OpenTelemetry, performance budgets, security hardening, and chaos/failure tests. (2026-09-17 05:24Z: issue 9 tracks the work; database rate limiting, structured correlation logs, OpenTelemetry, security headers, security workflows, benchmark and operations documentation are implemented locally.)
-- [ ] Provision managed PostgreSQL and a production web deployment, run migrations, seed the demonstration workspace, and verify the public URL.
-- [ ] Protect the default branch, publish architecture and incident documentation, and complete the final acceptance audit.
+- [x] (2026-09-17 05:30Z) Delivered and merged pull request 10 with OpenTelemetry, privacy-preserving distributed rate limits, structured correlation logs, security headers, CodeQL, dependency review, performance budgets, and a database-readiness failure rehearsal.
+- [x] (2026-09-17 05:37Z) Provisioned managed Neon PostgreSQL, applied migrations, proved the seed idempotent, stored provider secrets, deployed Vercel revision `0cd2c40`, and passed the external production smoke at `https://compatgraph.vercel.app`.
+- [x] (2026-09-17 05:43Z) Connected automatic Git deployments and protected `main` with strict required checks, linear history, resolved conversations, and force-push and deletion prevention.
+- [ ] Complete the final acceptance audit and publish the launch evidence through issue 17. (2026-09-17 05:45Z: production persistence and reload are verified; Lighthouse issues are fixed locally and the compute region is aligned with Postgres.)
 
 ## Surprises & Discoveries
 
@@ -35,6 +36,8 @@ The first public demonstration will use a realistic payments API. It will show a
   Evidence: The first unit run attempted to execute `tests/e2e/product.spec.ts`; adding that directory to `vitest.config.ts` produced one passing unit suite while Playwright separately reported two passing browser tests.
 - Observation: The Next.js `server-only` package intentionally throws in a generic Vitest runtime even when the imported module is conceptually server code.
   Evidence: The first database integration run failed at `server-only/index.js`; a test-only empty alias preserves the production boundary while allowing direct server query tests.
+- Observation: The first production deployment defaulted Vercel Functions to `iad1` while the managed Neon database was provisioned in `pdx1`.
+  Evidence: Vercel inspection reported `iad1`, while two external health requests took 1.1–1.5 seconds. The launch candidate now pins functions to `pdx1` and keeps the latency mismatch visible in the benchmark record.
 
 ## Decision Log
 
@@ -59,10 +62,13 @@ The first public demonstration will use a realistic payments API. It will show a
 - Decision: Enforce public write quotas in PostgreSQL and hash client identifiers before storage.
   Rationale: A process-local limiter does not survive serverless scaling, while raw network identifiers are unnecessary for quota enforcement. Atomic upserts give every instance one shared decision without turning rate-limit data into user analytics.
   Date/Author: 2026-09-17 / Codex
+- Decision: Deploy Vercel Functions and managed Neon PostgreSQL together in `pdx1`.
+  Rationale: Portland is the closest supported Neon region to the primary Edmonton test location, and co-location avoids making every database-backed request cross the continent.
+  Date/Author: 2026-09-17 / Codex
 
 ## Outcomes & Retrospective
 
-The first four milestones are merged with green hosted checks and complete the core public user loop. The active production-evidence milestone is locally instrumented and hardened. Managed hosting remains blocked only on provider authentication and provisioning; no deployment credentials are present on this host.
+The first five delivery milestones are merged with green hosted checks. The public product is live on Vercel with managed Neon PostgreSQL, provider-owned secrets, traces, abuse controls, and automatic Git deployments. A production analysis created a 14-finding release with six exposed consumers and reloaded from PostgreSQL. The remaining launch work is the hosted audit of the accessibility and region-alignment refinements; authentication, repository ingestion, and durable workers remain explicit roadmap scope.
 
 ## Context and Orientation
 
@@ -130,8 +136,11 @@ Authoritative project artifacts will include `README.md`, `docs/architecture.md`
 Current remote evidence:
 
     repository: https://github.com/Dricmoy/compatgraph
+    production: https://compatgraph.vercel.app
     default branch: main
     visibility: public
+    automatic deployments: connected to Dricmoy/compatgraph
+    branch protection: strict required checks, linear history, resolved conversations, no force pushes or deletion
 
 Local milestone 1 evidence:
 
@@ -185,10 +194,22 @@ Local production-evidence milestone:
     optimized local smoke: landing 35 ms, database health 37 ms, deterministic preview 35 ms
     incident rehearsal: readiness returned a bounded 503 during simulated database loss and recovered without state mutation
 
+Initial production launch evidence:
+
+    Vercel deployment: Ready, deployment dpl_5RLRjpvrQYNjpv7LZwB1jdxcyb9k
+    source revision: 0cd2c405df06b1ce0b0dc592a887648f0df72265
+    managed database: Neon PostgreSQL resource compatgraph-postgres in pdx1
+    migrations: 0000 through 0003 applied successfully to managed PostgreSQL
+    seed: repeated twice successfully against managed PostgreSQL
+    external smoke: landing, readiness, CSP, request correlation, and exact deterministic preview passed
+    persisted release: release_228cf6b8059bc52bd7a8c6b4, 14 findings, 6 consumers, reload verified
+    Lighthouse: 99 performance, 93 accessibility, 100 best practices, 100 SEO; 152,420 script bytes, CLS 0
+    launch candidate Lighthouse: 98 performance, 100 accessibility, 100 best practices, 100 SEO
+
 ## Interfaces and Dependencies
 
 Next.js 16 and React 19 provide the web and server-rendering framework. TypeScript runs in strict mode. Tailwind CSS 4 provides design tokens and styling. Vitest covers framework-independent logic and component behavior; Playwright covers real browser journeys. Zod will validate untrusted contract and form input. PostgreSQL and Drizzle ORM will provide typed persistence. OpenTelemetry will expose traces and metrics. GitHub Actions is the authoritative continuous-integration environment.
 
 The analysis boundary exposes a function shaped like `analyzeContracts(baseline, candidate): AnalysisResult`, where each input is a parsed and validated OpenAPI document and the result contains stable findings and summary counts. The persistence boundary exposes server-only queries rather than leaking raw database records into client components. Background execution will accept stable job identifiers and be safe to retry.
 
-Plan revision note, 2026-09-17 05:28Z: Recorded the merged persistence milestone and complete local production-hardening evidence: privacy-preserving distributed rate limits, correlation logs, OpenTelemetry registration, security headers and workflows, benchmark budgets, threat model, operations runbook, and a database-readiness failure rehearsal.
+Plan revision note, 2026-09-17 05:45Z: Recorded the managed production launch, automatic Git deployment connection, protected branch, external smoke and persistence evidence, initial Lighthouse audit, region mismatch discovery, and the locally verified accessibility and co-location refinements tracked by issue 17.

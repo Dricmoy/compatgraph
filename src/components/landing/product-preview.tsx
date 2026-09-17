@@ -23,7 +23,7 @@ export function ProductPreview() {
             <span className="h-2.5 w-2.5 rounded-full bg-[#ffc65c]" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#5dce88]" />
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-black/[0.08] px-3 py-1 text-[10px] font-semibold tracking-[0.14em] text-black/45 uppercase">
+          <div className="flex items-center gap-2 rounded-full border border-black/[0.08] px-3 py-1 text-[10px] font-semibold tracking-[0.14em] text-black/65 uppercase">
             <Radio className="h-3 w-3 text-[var(--mint-deep)]" />
             Analysis complete
           </div>
@@ -32,14 +32,14 @@ export function ProductPreview() {
           <div className="relative overflow-hidden border-b border-black/[0.07] p-5 md:border-r md:border-b-0">
             <div className="mb-5 flex items-start justify-between">
               <div>
-                <p className="text-[10px] font-semibold tracking-[0.18em] text-black/40 uppercase">
+                <p className="text-[10px] font-semibold tracking-[0.18em] text-black/65 uppercase">
                   Impact graph
                 </p>
-                <h3 className="mt-1.5 text-lg font-semibold tracking-tight">
+                <p className="mt-1.5 text-lg font-semibold tracking-tight">
                   Payments API · v3.0.0
-                </h3>
+                </p>
               </div>
-              <span className="rounded-full bg-[var(--signal)]/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-[var(--signal-deep)]">
+              <span className="rounded-full border border-[var(--signal)]/20 bg-white px-2.5 py-1 font-mono text-[10px] font-semibold text-[var(--signal-deep)]">
                 3 breaking
               </span>
             </div>
@@ -74,7 +74,7 @@ export function ProductPreview() {
                   key={node.name}
                   className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-xl border px-3 py-2.5 text-xs font-semibold shadow-sm ${
                     node.tone === "signal"
-                      ? "pulse-ring border-[var(--signal)] bg-[var(--signal)] text-white"
+                      ? "pulse-ring border-[var(--signal-deep)] bg-[var(--signal-deep)] text-white"
                       : "border-black/10 bg-white text-[var(--navy)]"
                   }`}
                   style={{ left: node.x, top: node.y }}
@@ -87,12 +87,12 @@ export function ProductPreview() {
           <div className="bg-white p-5">
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-semibold tracking-[0.18em] text-black/40 uppercase">
+                <p className="text-[10px] font-semibold tracking-[0.18em] text-black/65 uppercase">
                   Release gate
                 </p>
-                <h3 className="mt-1.5 text-lg font-semibold tracking-tight">
+                <p className="mt-1.5 text-lg font-semibold tracking-tight">
                   Migration readiness
-                </h3>
+                </p>
               </div>
               <div className="grid h-12 w-12 place-items-center rounded-full border-4 border-[var(--signal)] text-sm font-bold">
                 78
@@ -104,7 +104,7 @@ export function ProductPreview() {
                   <AlertTriangle className="h-4 w-4" />
                   currency is now required
                 </div>
-                <p className="mt-2 font-mono text-[11px] text-black/50">
+                <p className="mt-2 font-mono text-[11px] text-black/65">
                   POST /v1/payment_intents
                 </p>
                 <div className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-black/55">
@@ -117,7 +117,7 @@ export function ProductPreview() {
                   <Check className="h-4 w-4 text-[var(--mint-deep)]" />9
                   additive changes verified
                 </div>
-                <p className="mt-2 text-xs leading-5 text-black/45">
+                <p className="mt-2 text-xs leading-5 text-black/65">
                   No migration required for existing consumers.
                 </p>
               </div>

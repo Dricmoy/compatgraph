@@ -1,6 +1,9 @@
 # CompatGraph
 
 [![CI](https://github.com/Dricmoy/compatgraph/actions/workflows/ci.yml/badge.svg)](https://github.com/Dricmoy/compatgraph/actions/workflows/ci.yml)
+[![Security](https://github.com/Dricmoy/compatgraph/actions/workflows/security.yml/badge.svg)](https://github.com/Dricmoy/compatgraph/actions/workflows/security.yml)
+
+[Open the live product](https://compatgraph.vercel.app) · [Run a contract analysis](https://compatgraph.vercel.app/analyze) · [Inspect the architecture](docs/architecture.md)
 
 **Change intelligence for APIs.** CompatGraph detects breaking contract changes, maps them to affected consumers, and turns release risk into an auditable migration plan.
 
@@ -12,18 +15,20 @@ A platform team should be able to compare a baseline OpenAPI contract with a can
 
 The committed [execution plan](docs/exec-plan.md) is the living specification and milestone record.
 
-## Current milestone
+## Production release
 
-The merged foundation, PostgreSQL, deterministic-analysis, and persisted-workflow milestones deliver:
+The public release delivers:
 
 - a polished public product experience and realistic release dashboard;
 - strict TypeScript, linting, formatting, unit tests, and browser tests;
-- reproducible GitHub Actions checks;
-- normalized PostgreSQL storage, committed migrations, an idempotent seed, and a database-backed dashboard.
-- exact OpenAPI 3.0/3.1 compatibility rules with stable identifiers and fixture coverage.
-- retry-safe saved analyses, operation-level consumer evidence, and an interactive impact workspace.
+- required GitHub Actions quality, browser, dependency, and CodeQL gates;
+- managed Neon PostgreSQL with committed migrations and an idempotent seed;
+- exact OpenAPI 3.0/3.1 compatibility rules with stable evidence;
+- retry-safe saved analyses, consumer ownership mapping, and an interactive impact graph;
+- privacy-preserving database rate limits, correlation logs, OpenTelemetry traces, security headers, performance budgets, a threat model, and a rollback runbook;
+- automatic Vercel preview and production deployments from `Dricmoy/compatgraph`.
 
-The active milestone prepares that workflow for production with privacy-preserving database rate limits, correlation logs and traces, browser security headers, automated CodeQL and dependency review, performance budgets, a threat model, and an operations runbook. The repository and callsite evidence remain synthetic; the storage, analysis, and interaction paths are real.
+The repository and callsite evidence are synthetic demonstration data. The storage, analysis, rate-limiting, observability, deployment, and interaction paths are real.
 
 ## Local development
 
@@ -75,7 +80,7 @@ Operational evidence lives in [docs/benchmarks.md](docs/benchmarks.md), [docs/th
 
 ## Status
 
-Active development. The public repository now has a database-backed dashboard, deterministic engine, persisted analysis workflow, interactive consumer graph, telemetry wiring, and security controls. Authentication, repository ingestion, background jobs, and managed production deployment remain.
+Public production beta. [CompatGraph](https://compatgraph.vercel.app) runs on Vercel with managed Neon PostgreSQL, automatic Git deployments, and a protected `main` branch. Authentication, live repository ingestion, and durable background jobs remain roadmap work rather than simulated features.
 
 ## License
 
