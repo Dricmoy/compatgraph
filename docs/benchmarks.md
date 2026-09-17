@@ -78,3 +78,18 @@ The smoke suite passed, but the health latency revealed an avoidable cross-regio
 - JavaScript transfer: 154,434 bytes, below the 180 KiB budget
 
 This audit runs the optimized production build locally and proves the accessibility fixes before hosted deployment. Final co-located production timings are recorded after the protected launch pull request reaches `main`.
+
+### Final public production audit — 2026-09-17
+
+- URL: `https://compatgraph.vercel.app`
+- Revision: `d952dbd`
+- Runtime: Vercel Functions and managed Neon PostgreSQL co-located in `pdx1`
+- External smoke: landing 577 ms, database health 594 ms, deterministic preview 320 ms
+- Lighthouse mobile: performance 100, accessibility 100, best practices 100, SEO 100
+- First contentful paint: 1,029 ms
+- Largest contentful paint: 1,929 ms
+- Total blocking time: 0 ms
+- Cumulative layout shift: 0
+- JavaScript transfer: 152,380 bytes, below the 180 KiB budget
+
+The protected Git deployment passed the exact-fixture smoke assertions, including managed-database connectivity, response correlation, security headers, and the expected 7 breaking, 2 dangerous, and 5 safe findings. The persisted demonstration release also returned 200 after deployment, proving that the release survived the immutable application rollout.
