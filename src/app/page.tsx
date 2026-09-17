@@ -107,7 +107,7 @@ export default function Home() {
                 >
                   <Icon className="h-5 w-5" />
                 </div>
-                <p className="mt-10 text-[11px] font-bold tracking-[0.17em] text-black/40 uppercase">
+                <p className="mt-10 text-[11px] font-bold tracking-[0.17em] text-black/65 uppercase">
                   0{index + 1} · {capability.eyebrow}
                 </p>
                 <h3 className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
@@ -165,7 +165,7 @@ export default function Home() {
       </section>
 
       <footer className="border-t border-black/[0.08] bg-[var(--paper)] py-8">
-        <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 text-sm text-black/50 md:flex-row md:items-center md:justify-between md:px-8">
+        <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 text-sm text-black/65 md:flex-row md:items-center md:justify-between md:px-8">
           <p>Built in public by Dricmoy Bhattacharjee.</p>
           <p className="font-mono text-xs">
             Contracts change. Trust shouldn&apos;t.

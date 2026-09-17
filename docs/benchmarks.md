@@ -54,3 +54,27 @@ The framework-independent engine is far below the 25 ms p95 budget; request pars
 - Result: passed CSP, correlation-ID, database, and exact-fixture assertions
 
 This is a warm local-production sanity check, not a hosted performance claim. The same smoke script will provide comparable deployed evidence after provider provisioning.
+
+### Initial public deployment — 2026-09-17
+
+- URL: `https://compatgraph.vercel.app`
+- Revision: `0cd2c40`
+- Runtime: Vercel Functions `iad1`; managed Neon PostgreSQL `pdx1`
+- External smoke: landing 672 ms, database health 1,111 ms, deterministic preview 402 ms
+- Repeat smoke: landing 373 ms, database health 1,468 ms, deterministic preview 383 ms
+- Lighthouse mobile: performance 99, accessibility 93, best practices 100, SEO 100
+- Lighthouse JavaScript transfer: 152,420 bytes, below the 180 KiB budget
+- Lighthouse layout shift: 0
+
+The smoke suite passed, but the health latency revealed an avoidable cross-region database hop. The launch candidate pins Vercel Functions to `pdx1`. The same audit also identified low-contrast decorative labels and a skipped heading level; those findings are corrected in the launch candidate rather than waived.
+
+### Launch candidate local production audit — 2026-09-17
+
+- Lighthouse mobile: performance 98, accessibility 100, best practices 100, SEO 100
+- First contentful paint: 759 ms
+- Largest contentful paint: 2,317 ms
+- Total blocking time: 6 ms
+- Cumulative layout shift: 0
+- JavaScript transfer: 154,434 bytes, below the 180 KiB budget
+
+This audit runs the optimized production build locally and proves the accessibility fixes before hosted deployment. Final co-located production timings are recorded after the protected launch pull request reaches `main`.

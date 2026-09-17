@@ -20,6 +20,12 @@ flowchart LR
 
 Pages and layouts in `src/app` are React Server Components by default. They can read through `src/data`, but they do not issue HTTP requests back into their own route handlers. Interactive browser-only behavior will be isolated in small Client Components. `src/db/client.ts` lazily creates the PostgreSQL client so importing a page during build does not require a connection.
 
+## Deployed topology
+
+The public application is deployed from `Dricmoy/compatgraph` to Vercel at `https://compatgraph.vercel.app`. Production and preview functions are pinned to `pdx1`, alongside the managed Neon PostgreSQL project, to keep database round trips inside one region. Vercel owns pooled database credentials for production, preview, and development; only local ignored environment files receive development copies.
+
+Every pull request receives a Vercel preview plus the repository quality, browser, dependency-review, and CodeQL gates. A merge to protected `main` produces the production deployment. GitHub rejects force pushes, deletion, non-linear history, unresolved review conversations, and commits without the required checks.
+
 ## Security and observability
 
 Public analysis routes enforce atomic PostgreSQL rate limits shared by every web instance. Client network identifiers are combined with a provider secret and SHA-256 hashed before storage; neither contract bodies nor raw identifiers enter logs. Production refuses to rate-limit without `RATE_LIMIT_SALT`, so a configuration error fails closed.
