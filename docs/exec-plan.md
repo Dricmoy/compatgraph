@@ -22,7 +22,7 @@ The first public demonstration will use a realistic payments API. It will show a
 - [x] (2026-09-17 05:30Z) Delivered and merged pull request 10 with OpenTelemetry, privacy-preserving distributed rate limits, structured correlation logs, security headers, CodeQL, dependency review, performance budgets, and a database-readiness failure rehearsal.
 - [x] (2026-09-17 05:37Z) Provisioned managed Neon PostgreSQL, applied migrations, proved the seed idempotent, stored provider secrets, deployed Vercel revision `0cd2c40`, and passed the external production smoke at `https://compatgraph.vercel.app`.
 - [x] (2026-09-17 05:43Z) Connected automatic Git deployments and protected `main` with strict required checks, linear history, resolved conversations, and force-push and deletion prevention.
-- [ ] Complete the final acceptance audit and publish the launch evidence through issue 17. (2026-09-17 05:45Z: production persistence and reload are verified; Lighthouse issues are fixed locally and the compute region is aligned with Postgres.)
+- [x] (2026-09-17 05:58Z) Completed the final acceptance audit through pull request 18 and issue 17: the protected Git deployment is co-located in `pdx1`, public smoke passed, the persisted release survived deployment, Lighthouse scored 100 in all four categories, and Dependabot reported zero open alerts.
 
 ## Surprises & Discoveries
 
@@ -68,7 +68,7 @@ The first public demonstration will use a realistic payments API. It will show a
 
 ## Outcomes & Retrospective
 
-The first five delivery milestones are merged with green hosted checks. The public product is live on Vercel with managed Neon PostgreSQL, provider-owned secrets, traces, abuse controls, and automatic Git deployments. A production analysis created a 14-finding release with six exposed consumers and reloaded from PostgreSQL. The remaining launch work is the hosted audit of the accessibility and region-alignment refinements; authentication, repository ingestion, and durable workers remain explicit roadmap scope.
+The launch scope is complete with six focused, reviewed pull requests and green required checks. The public product is live on Vercel with managed Neon PostgreSQL, provider-owned secrets, traces, abuse controls, automatic Git deployments, and a required deployment gate. A production analysis created a 14-finding release with six exposed consumers and reloaded from PostgreSQL before and after the final deployment. The final public audit scored 100 for performance, accessibility, best practices, and SEO. Authentication, repository ingestion, and durable workers remain explicit roadmap scope rather than simulated launch claims.
 
 ## Context and Orientation
 
@@ -119,9 +119,9 @@ The commands now exist and are:
 
 ## Validation and Acceptance
 
-The product is complete only when all of the following are directly observed. The public URL loads without authentication and explains CompatGraph. The demonstration dashboard reads PostgreSQL-backed releases and findings. Uploading two supported OpenAPI contracts creates a persisted analysis with deterministic breaking-change findings. An impact view links at least one finding to a consumer and owner. Restarting the application does not lose data. GitHub Actions validates formatting, lint, types, unit tests, integration tests, browser tests, build, dependency review, and code scanning as applicable. Pull requests contain focused descriptions and evidence. The production environment exposes a health endpoint, emits traces, uses non-repository secrets, and has documented migration and rollback procedures.
+The v1 launch is complete only when all of the following are directly observed. The public URL loads without authentication and explains CompatGraph. The demonstration dashboard reads PostgreSQL-backed releases and findings. Uploading two supported OpenAPI contracts creates a persisted analysis with deterministic breaking-change findings. An impact view links at least one finding to a consumer and owner. Restarting or redeploying the application does not lose data. GitHub Actions validates formatting, lint, types, unit tests, integration tests, browser tests, build, dependency review, code scanning, and the hosted deployment. Pull requests contain focused descriptions and evidence. The production environment exposes a health endpoint, emits traces, uses non-repository secrets, and has documented migration and rollback procedures.
 
-Quality acceptance includes keyboard navigation, visible focus states, semantic landmarks, responsive layouts at 390, 768, and 1440 pixel widths, no serious automated accessibility findings, and a Lighthouse performance result recorded for the deployed public pages. Systems acceptance includes idempotent jobs, duplicate webhook handling, bounded retries, database constraints, migration reproducibility, and a failure test showing recovery from an interrupted analysis worker.
+Quality acceptance includes keyboard navigation, visible focus states, semantic landmarks, responsive layouts at 390, 768, and 1440 pixel widths, no serious automated accessibility findings, and a Lighthouse performance result recorded for the deployed public pages. V1 systems acceptance includes idempotent analysis requests, shared atomic rate limiting, database constraints, migration reproducibility, correlation-aware telemetry, and a failure test showing database-readiness recovery without state mutation. Duplicate webhook handling, durable job retries, and interrupted-worker recovery become required when the roadmap GitHub and worker milestone is implemented.
 
 ## Idempotence and Recovery
 
@@ -141,6 +141,7 @@ Current remote evidence:
     visibility: public
     automatic deployments: connected to Dricmoy/compatgraph
     branch protection: strict required checks, linear history, resolved conversations, no force pushes or deletion
+    required checks: Quality and build, Browser smoke tests, Dependency review, CodeQL, Vercel
 
 Local milestone 1 evidence:
 
@@ -206,6 +207,17 @@ Initial production launch evidence:
     Lighthouse: 99 performance, 93 accessibility, 100 best practices, 100 SEO; 152,420 script bytes, CLS 0
     launch candidate Lighthouse: 98 performance, 100 accessibility, 100 best practices, 100 SEO
 
+Final production evidence:
+
+    pull request 18: merged at d952dbda856474ec123a45fbd05a7ac6e8711ae4; issue 17 closed
+    Vercel deployment: Ready, deployment dpl_3vkGD2aB3DuZizwdURnLoFQLum6W, functions in pdx1
+    production smoke: landing 577 ms, database health 594 ms, deterministic preview 320 ms
+    production revision: d952dbd
+    persisted release: returned 200 after deployment with 7 breaking findings and 6 consumers
+    Lighthouse: 100 performance, 100 accessibility, 100 best practices, 100 SEO
+    Lighthouse details: FCP 1,029 ms, LCP 1,929 ms, TBT 0 ms, CLS 0, 152,380 script bytes
+    security: zero open Dependabot alerts
+
 ## Interfaces and Dependencies
 
 Next.js 16 and React 19 provide the web and server-rendering framework. TypeScript runs in strict mode. Tailwind CSS 4 provides design tokens and styling. Vitest covers framework-independent logic and component behavior; Playwright covers real browser journeys. Zod will validate untrusted contract and form input. PostgreSQL and Drizzle ORM will provide typed persistence. OpenTelemetry will expose traces and metrics. GitHub Actions is the authoritative continuous-integration environment.
@@ -213,3 +225,5 @@ Next.js 16 and React 19 provide the web and server-rendering framework. TypeScri
 The analysis boundary exposes a function shaped like `analyzeContracts(baseline, candidate): AnalysisResult`, where each input is a parsed and validated OpenAPI document and the result contains stable findings and summary counts. The persistence boundary exposes server-only queries rather than leaking raw database records into client components. Background execution will accept stable job identifiers and be safe to retry.
 
 Plan revision note, 2026-09-17 05:45Z: Recorded the managed production launch, automatic Git deployment connection, protected branch, external smoke and persistence evidence, initial Lighthouse audit, region mismatch discovery, and the locally verified accessibility and co-location refinements tracked by issue 17.
+
+Plan revision note, 2026-09-17 05:58Z: Recorded pull request 18, the required Vercel deployment gate, final co-located production deployment, anonymous smoke, persisted-release survival, perfect public Lighthouse audit, and the explicit boundary between shipped v1 behavior and the GitHub/worker roadmap.
