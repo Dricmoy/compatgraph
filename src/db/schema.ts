@@ -34,6 +34,24 @@ export const consumerKind = pgEnum("consumer_kind", [
 ]);
 export const actorKind = pgEnum("actor_kind", ["person", "system"]);
 
+export const rateLimitBuckets = pgTable(
+  "rate_limit_buckets",
+  {
+    key: text("key").primaryKey(),
+    windowStartedAt: timestamp("window_started_at", {
+      withTimezone: true,
+    }).notNull(),
+    requestCount: integer("request_count").notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    check("rate_limit_request_count_positive", sql`${table.requestCount} > 0`),
+    index("rate_limit_updated_idx").on(table.updatedAt),
+  ],
+);
+
 export const organizations = pgTable(
   "organizations",
   {

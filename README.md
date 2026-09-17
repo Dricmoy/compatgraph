@@ -14,15 +14,16 @@ The committed [execution plan](docs/exec-plan.md) is the living specification an
 
 ## Current milestone
 
-The merged foundation, PostgreSQL, and deterministic-analysis milestones deliver:
+The merged foundation, PostgreSQL, deterministic-analysis, and persisted-workflow milestones deliver:
 
 - a polished public product experience and realistic release dashboard;
 - strict TypeScript, linting, formatting, unit tests, and browser tests;
 - reproducible GitHub Actions checks;
 - normalized PostgreSQL storage, committed migrations, an idempotent seed, and a database-backed dashboard.
 - exact OpenAPI 3.0/3.1 compatibility rules with stable identifiers and fixture coverage.
+- retry-safe saved analyses, operation-level consumer evidence, and an interactive impact workspace.
 
-The active milestone turns those foundations into a complete user workflow: upload or edit two contracts, persist a retry-safe analysis, filter exact findings, and navigate consumer ownership through an interactive impact graph. The repository and callsite evidence remain synthetic; the storage, analysis, and interaction paths are real.
+The active milestone prepares that workflow for production with privacy-preserving database rate limits, correlation logs and traces, browser security headers, automated CodeQL and dependency review, performance budgets, a threat model, and an operations runbook. The repository and callsite evidence remain synthetic; the storage, analysis, and interaction paths are real.
 
 ## Local development
 
@@ -70,9 +71,11 @@ curl --request POST http://localhost:3000/api/analyze/preview \
 
 See [docs/architecture.md](docs/architecture.md) for the runtime and persistence design, [CONTRIBUTING.md](CONTRIBUTING.md) for the pull-request workflow, and [docs/exec-plan.md](docs/exec-plan.md) for the complete delivery, validation, and recovery contract.
 
+Operational evidence lives in [docs/benchmarks.md](docs/benchmarks.md), [docs/threat-model.md](docs/threat-model.md), and [docs/runbook.md](docs/runbook.md).
+
 ## Status
 
-Active development. The public repository now has a database-backed dashboard, deterministic engine, persisted analysis workflow, and interactive consumer graph. Authentication, repository ingestion, background jobs, telemetry, and production deployment remain.
+Active development. The public repository now has a database-backed dashboard, deterministic engine, persisted analysis workflow, interactive consumer graph, telemetry wiring, and security controls. Authentication, repository ingestion, background jobs, and managed production deployment remain.
 
 ## License
 

@@ -56,7 +56,23 @@ test("health endpoint proves PostgreSQL connectivity", async ({ request }) => {
   await expect(response.json()).resolves.toMatchObject({
     status: "ok",
     database: "connected",
+    revision: "local",
   });
+  expect(response.headers()["x-request-id"]).toMatch(/^[a-f0-9-]{36}$/);
+});
+
+test("public pages ship production-oriented browser protections", async ({
+  request,
+}) => {
+  const response = await request.get("/");
+  const headers = response.headers();
+
+  expect(headers["content-security-policy"]).toContain(
+    "frame-ancestors 'none'",
+  );
+  expect(headers["x-frame-options"]).toBe("DENY");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["x-powered-by"]).toBeUndefined();
 });
 
 test("analysis endpoint compares real OpenAPI fixtures", async ({
