@@ -14,14 +14,14 @@ The committed [execution plan](docs/exec-plan.md) is the living specification an
 
 ## Current milestone
 
-The merged foundation delivers:
+The merged foundation and PostgreSQL milestones deliver:
 
 - a polished public product experience and realistic release dashboard;
 - strict TypeScript, linting, formatting, unit tests, and browser tests;
 - reproducible GitHub Actions checks;
-- an incremental plan for PostgreSQL, deterministic OpenAPI analysis, consumer impact mapping, GitHub integration, telemetry, and production deployment.
+- normalized PostgreSQL storage, committed migrations, an idempotent seed, and a database-backed dashboard.
 
-The active milestone replaces in-memory dashboard fixtures with normalized PostgreSQL records, committed migrations, and an idempotent demonstration seed. The demonstration remains synthetic; the storage and query path are real.
+The active milestone adds the deterministic compatibility engine: JSON and YAML OpenAPI 3.0/3.1 parsing, explainable rules, stable finding identifiers, an exact fixture corpus, and a bounded preview API. The demonstration remains synthetic; the database and analysis paths are real.
 
 ## Local development
 
@@ -57,11 +57,21 @@ pnpm test:e2e
 
 CompatGraph is a modular Next.js application. Server Components own data access and rendering; small Client Components are added only for interaction. PostgreSQL is the authoritative store for organizations, teams, projects, contracts, releases, changes, consumers, impact edges, and activity. Deterministic contract analysis remains independent of the web framework so it can later run in retry-safe background workers without changing its results.
 
+The preview API accepts two contract strings and returns ordered compatibility findings:
+
+```bash
+curl --request POST http://localhost:3000/api/analyze/preview \
+  --header 'content-type: application/json' \
+  --data-binary @request.json
+```
+
+`request.json` has the shape `{ "baseline": "<OpenAPI JSON or YAML>", "candidate": "<OpenAPI JSON or YAML>" }`. Each contract is capped at 512 KiB, and the analyzer never resolves remote references.
+
 See [docs/architecture.md](docs/architecture.md) for the runtime and persistence design, [CONTRIBUTING.md](CONTRIBUTING.md) for the pull-request workflow, and [docs/exec-plan.md](docs/exec-plan.md) for the complete delivery, validation, and recovery contract.
 
 ## Status
 
-Active development. The public repository and database-backed dashboard exist, but contract upload, deterministic analysis, authentication, and production deployment are not complete yet.
+Active development. The public repository, database-backed dashboard, and deterministic analysis engine exist, but persisted user analyses, authentication, and production deployment are not complete yet.
 
 ## License
 
