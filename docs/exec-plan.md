@@ -15,11 +15,11 @@ The first public demonstration will use a realistic payments API. It will show a
 - [x] (2026-09-16 23:20Z) Created the public `Dricmoy/compatgraph` repository and configured a repository-local personal Git identity.
 - [x] (2026-09-16 23:28Z) Generated the Next.js 16, React 19, TypeScript, and Tailwind foundation on `feat/foundation`.
 - [x] (2026-09-16 23:38Z) Delivered and merged pull request 2 with the branded public experience, sample dashboard, engineering standards, tests, and two green GitHub Actions checks; issue 1 closed automatically.
-- [ ] Deliver the PostgreSQL milestone with migrations, seed data, and server-side dashboard queries. (2026-09-16 23:45Z: schema, initial migration, idempotent seed, query layer, health route, integration tests, and CI service configuration implemented locally; remaining: complete validation and ship the focused pull request.)
-- [ ] Deliver pull request 3 with deterministic OpenAPI parsing and breaking-change analysis.
-- [ ] Deliver pull request 4 with persisted analyses, consumer impact mapping, and an interactive graph.
-- [ ] Deliver pull request 5 with authentication, GitHub repository connection, and background analysis jobs.
-- [ ] Deliver pull request 6 with OpenTelemetry, performance budgets, security hardening, and chaos/failure tests.
+- [x] (2026-09-17 00:18Z) Delivered and merged pull request 4 with PostgreSQL 17, Drizzle migrations, idempotent demonstration data, database-backed dashboard queries, integration coverage, and database-enabled CI.
+- [ ] Deliver the deterministic OpenAPI parsing and breaking-change analysis milestone. (2026-09-17 00:48Z: issue 5 tracks the work; implementation and local quality gates are complete; remaining: focused pull request and hosted checks.)
+- [ ] Deliver persisted analyses, consumer impact mapping, and an interactive graph.
+- [ ] Deliver authentication, GitHub repository connection, and background analysis jobs.
+- [ ] Deliver OpenTelemetry, performance budgets, security hardening, and chaos/failure tests.
 - [ ] Provision managed PostgreSQL and a production web deployment, run migrations, seed the demonstration workspace, and verify the public URL.
 - [ ] Protect the default branch, publish architecture and incident documentation, and complete the final acceptance audit.
 
@@ -53,10 +53,13 @@ The first public demonstration will use a realistic payments API. It will show a
 - Decision: Normalize ownership and impact instead of storing dashboard-shaped JSON.
   Rationale: Separate organization, team, project, contract, release, change, consumer, impact-edge, and activity tables make referential integrity and future ingestion behavior observable while keeping the read model assembled in one server-only query boundary.
   Date/Author: 2026-09-16 / Codex
+- Decision: Classify enum compatibility by data direction.
+  Rationale: Removing an accepted request value breaks existing callers, while adding a possible response value can surprise clients with exhaustive enum handling. Direction-aware rules describe actual consumer risk more accurately than a syntax-only diff.
+  Date/Author: 2026-09-17 / Codex
 
 ## Outcomes & Retrospective
 
-The foundation milestone is merged. Its remote quality/build check passed in 1 minute 12 seconds and its browser check passed in 44 seconds. The database milestone is implemented locally against PostgreSQL 17: migration succeeded from an empty volume, and the seed ran twice without duplication or errors. Final database-backed application and CI validation remain before its pull request.
+The foundation milestone is merged. Its remote quality/build check passed in 1 minute 12 seconds and its browser check passed in 44 seconds. The database milestone is also merged: migration succeeded from an empty PostgreSQL 17 volume, the seed ran twice without duplication, the database-backed browser journey passed, and both hosted checks succeeded. Deterministic OpenAPI analysis is implemented and locally green across 11 unit and route tests plus four browser journeys; hosted review remains.
 
 ## Context and Orientation
 
@@ -137,10 +140,20 @@ Local milestone 1 evidence:
     hosted quality/build: passed in 1 minute 12 seconds
     hosted browser smoke tests: passed in 44 seconds
 
+Milestone 2 evidence:
+
+    migration: succeeded from an empty PostgreSQL 17 volume
+    seed: succeeded twice without duplicate rows
+    vitest: 2 files, 4 tests passed
+    playwright: 3 Chromium tests passed
+    pull request 4: merged at commit 39b32b9a9284eed368877943969ebc77234d4a57
+    hosted quality/build: passed in 1 minute
+    hosted browser smoke tests: passed in 1 minute 13 seconds
+
 ## Interfaces and Dependencies
 
 Next.js 16 and React 19 provide the web and server-rendering framework. TypeScript runs in strict mode. Tailwind CSS 4 provides design tokens and styling. Vitest covers framework-independent logic and component behavior; Playwright covers real browser journeys. Zod will validate untrusted contract and form input. PostgreSQL and Drizzle ORM will provide typed persistence. OpenTelemetry will expose traces and metrics. GitHub Actions is the authoritative continuous-integration environment.
 
-The analysis boundary will expose a function shaped like `analyzeContracts(baseline, candidate): AnalysisResult`, where each input is a parsed and validated OpenAPI document and the result contains stable findings and summary counts. The persistence boundary will expose server-only queries rather than leaking raw database records into client components. Background execution will accept stable job identifiers and be safe to retry.
+The analysis boundary exposes a function shaped like `analyzeContracts(baseline, candidate): AnalysisResult`, where each input is a parsed and validated OpenAPI document and the result contains stable findings and summary counts. The persistence boundary exposes server-only queries rather than leaking raw database records into client components. Background execution will accept stable job identifiers and be safe to retry.
 
-Plan revision note, 2026-09-16 23:45Z: Recorded the merged foundation evidence and the implemented PostgreSQL schema, migration, retry-safe seed, server query boundary, and test-runtime discovery.
+Plan revision note, 2026-09-17 00:48Z: Recorded local completion of the deterministic analyzer, direction-aware compatibility semantics, fixture corpus, bounded preview endpoint, and verification results.

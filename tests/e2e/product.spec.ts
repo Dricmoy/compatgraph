@@ -1,4 +1,6 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 test("visitor can understand the product and open the dashboard", async ({
   page,
@@ -41,5 +43,36 @@ test("health endpoint proves PostgreSQL connectivity", async ({ request }) => {
   await expect(response.json()).resolves.toMatchObject({
     status: "ok",
     database: "connected",
+  });
+});
+
+test("analysis endpoint compares real OpenAPI fixtures", async ({
+  request,
+}) => {
+  const fixtureDirectory = resolve(
+    process.cwd(),
+    "tests",
+    "fixtures",
+    "openapi",
+  );
+  const response = await request.post("/api/analyze/preview", {
+    data: {
+      baseline: readFileSync(
+        resolve(fixtureDirectory, "payments-v1.yaml"),
+        "utf8",
+      ),
+      candidate: readFileSync(
+        resolve(fixtureDirectory, "payments-v2.yaml"),
+        "utf8",
+      ),
+    },
+  });
+
+  expect(response.ok()).toBe(true);
+  await expect(response.json()).resolves.toMatchObject({
+    data: {
+      compatible: false,
+      summary: { breaking: 7, dangerous: 2, safe: 5 },
+    },
   });
 });
