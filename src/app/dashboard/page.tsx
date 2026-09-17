@@ -58,20 +58,17 @@ export default async function DashboardPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="hidden h-10 items-center gap-2 rounded-xl border border-black/[0.08] bg-white px-3.5 text-xs font-semibold shadow-sm transition-colors hover:bg-black/[0.025] sm:flex"
-          >
+          <span className="hidden h-10 items-center gap-2 rounded-xl border border-black/[0.08] bg-white px-3.5 text-xs font-semibold shadow-sm transition-colors hover:bg-black/[0.025] sm:flex">
             <GitFork className="h-4 w-4" />
-            Connected
-          </button>
-          <button
-            type="button"
+            Demo workspace
+          </span>
+          <Link
+            href="/analyze"
             className="flex h-10 items-center gap-2 rounded-xl bg-[var(--ink)] px-3.5 text-xs font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-black hover:shadow-lg"
           >
             <Plus className="h-4 w-4" />
             New analysis
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -131,7 +128,7 @@ export default async function DashboardPage() {
           <MetricCard
             label="Teams involved"
             value={String(releaseOverview.owners)}
-            detail="Ownership resolved through repository metadata."
+            detail="Synthetic ownership modeled from callsite evidence."
             icon={Boxes}
             tone="amber"
           />

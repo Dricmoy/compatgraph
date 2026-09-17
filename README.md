@@ -14,14 +14,15 @@ The committed [execution plan](docs/exec-plan.md) is the living specification an
 
 ## Current milestone
 
-The merged foundation and PostgreSQL milestones deliver:
+The merged foundation, PostgreSQL, and deterministic-analysis milestones deliver:
 
 - a polished public product experience and realistic release dashboard;
 - strict TypeScript, linting, formatting, unit tests, and browser tests;
 - reproducible GitHub Actions checks;
 - normalized PostgreSQL storage, committed migrations, an idempotent seed, and a database-backed dashboard.
+- exact OpenAPI 3.0/3.1 compatibility rules with stable identifiers and fixture coverage.
 
-The active milestone adds the deterministic compatibility engine: JSON and YAML OpenAPI 3.0/3.1 parsing, explainable rules, stable finding identifiers, an exact fixture corpus, and a bounded preview API. The demonstration remains synthetic; the database and analysis paths are real.
+The active milestone turns those foundations into a complete user workflow: upload or edit two contracts, persist a retry-safe analysis, filter exact findings, and navigate consumer ownership through an interactive impact graph. The repository and callsite evidence remain synthetic; the storage, analysis, and interaction paths are real.
 
 ## Local development
 
@@ -43,7 +44,7 @@ pnpm db:seed
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) for the product page and [http://localhost:3000/dashboard](http://localhost:3000/dashboard) for the release dashboard.
+Open [http://localhost:3000](http://localhost:3000) for the product page, [http://localhost:3000/analyze](http://localhost:3000/analyze) for the live contract workflow, and [http://localhost:3000/dashboard](http://localhost:3000/dashboard) for the seeded release dashboard.
 
 Run the full local quality gate:
 
@@ -71,7 +72,7 @@ See [docs/architecture.md](docs/architecture.md) for the runtime and persistence
 
 ## Status
 
-Active development. The public repository, database-backed dashboard, and deterministic analysis engine exist, but persisted user analyses, authentication, and production deployment are not complete yet.
+Active development. The public repository now has a database-backed dashboard, deterministic engine, persisted analysis workflow, and interactive consumer graph. Authentication, repository ingestion, background jobs, telemetry, and production deployment remain.
 
 ## License
 

@@ -30,9 +30,22 @@ test("public experience is usable at a mobile viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
 
-  await expect(page.getByRole("link", { name: "Live demo" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Run analysis" })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Ship APIs. Keep trust." }),
+  ).toBeVisible();
+});
+
+test("contract comparison remains usable at a mobile viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/analyze");
+
+  await expect(page.getByLabel("Baseline contract")).toBeVisible();
+  await expect(page.getByLabel("Candidate contract")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Run analysis" }),
   ).toBeVisible();
 });
 
@@ -75,4 +88,34 @@ test("analysis endpoint compares real OpenAPI fixtures", async ({
       summary: { breaking: 7, dangerous: 2, safe: 5 },
     },
   });
+});
+
+test("visitor persists and explores an interactive release analysis", async ({
+  page,
+}) => {
+  await page.goto("/analyze");
+
+  await expect(
+    page.getByRole("heading", {
+      name: "See the blast radius before your customers do.",
+    }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Run analysis" }).click();
+
+  await expect(page).toHaveURL(/\/releases\/release_[a-f0-9]{24}$/);
+  await expect(
+    page.getByRole("heading", { name: "1.4.0 → 2.0.0" }),
+  ).toBeVisible();
+  await expect(page.getByText("reload-safe PostgreSQL record")).toBeVisible();
+
+  await page.reload();
+  await page.getByRole("button", { name: "dangerous 2" }).click();
+  await expect(page.getByText("2 shown")).toBeVisible();
+  await page.getByRole("button", { name: /Enum values added/ }).click();
+  await expect(
+    page.getByText("customer-portal", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("support-console", { exact: true }),
+  ).toBeVisible();
 });

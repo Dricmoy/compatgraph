@@ -8,6 +8,20 @@
       "when": 1789602262495,
       "tag": "0000_ancient_blue_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789620700080,
+      "tag": "0001_tidy_weapon_omega",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789621784661,
+      "tag": "0002_easy_the_initiative",
+      "breakpoints": true
     }
   ]
 }
